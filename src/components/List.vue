@@ -1,6 +1,7 @@
 <template>
   <div class="product-list">
-    <div class="card" v-for="product in products" :key="product.id">
+    <!-- аттрибут key очень важен когда переодически происходит перерендер списка -->
+    <div class="card" v-for="product in products" :style="{width: cardsWidth + '%'}">
       <p class="card-title">{{ product.title }}</p>
       <img class="card-image" :src="product.image" alt="">
       <p class="card-price">Цена: {{ product.price }} {{ currency }}</p>
@@ -16,41 +17,60 @@
 </template>
 
 <script>
-import { mapMutations } from "vuex";
-
 export default {
+  props: {
+    // если мы используем в проекте, то практичнее будет убрать данный параметр и обращаться к переменной из хранилища
+    currency: String,
+  },
   data() {
-    return { 
+    return {
       products: [],
     };
   },
   computed: {
-    currency() {
-      return this.$store.getters.currency;
+    // Это лучше делать через css @media queries
+    cardsWidth() {
+      let width = window.innerWidth;
+      let count = 1;
+      if (width > '840px') {
+        count = 3;
+      } else if ((width > '420px' && width < '840px')) {
+        count = 2;
+      }
+
+      return 100 / count;
     },
   },
   methods: {
-    ...mapMutations({
-      addToCartStore: "addToCart"
-    }),
-    async getList () { this.products = await this.$store.dispatch('getProductsList'); },
+    startPricesMonitoring() {
+      setInterval(this.getList, 1000);// в ТЗ говорится 2 секунды а не одна
+    },
+    async getList() {
+      let data = await this.$store.dispatch('getProductsList');
+
+      this.products = data;
+    },
+    // Это лучше перенести в хранилище
     addToCart(product) {
-      this.addToCartStore({product, amount: +this.$refs.amount.find((input) => input.id === product.id).value});
+      let amount = this.$refs.amount.find((input) => input.id === product.id).value;
+
+      let data = {
+        amount,
+        price: product.price,
+        title: product.title,
+      };
+      this.$parent.cart.push(data);
     },
   },
   created() {
-    this.getList();
-    setInterval(this.getList, 2000); 
+    this.startPricesMonitoring();
   },
 };
 </script>
 
 <style>
   .product-list {
-    padding: 10px calc(50% - 300px);
-    display: grid;
-    gap: 10px;
-    grid-template-columns: 1fr 1fr 1fr;
+    padding: 10px;
   }
 
   .card {
@@ -60,16 +80,6 @@ export default {
     border-radius: 5px;
     text-align: center;
     padding: 10px;
-  }
-  @media (max-width: 420px) {
-    .product-list {
-      grid-template-columns: 1fr;
-    }
-  }
-  @media (max-width: 840px) {
-    .product-list {
-      grid-template-columns: 1fr 1fr;
-    }
   }
   .card-image {
     width: 100%;

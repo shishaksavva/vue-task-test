@@ -15,6 +15,7 @@ export default {
   name: 'App',
   data() {
     return {
+      // Это лучше переместить в хранилище
       cart: [],
       currency: 'VGTB',
     };

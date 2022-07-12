@@ -1,48 +1,28 @@
 <template>
-  <div :class="getClass">
-    <div class="cart-label">Корзина</div>
-    <button @click="open=!open">{{!open? "Открыть" : "Закрыть"}}</button>
-    <div v-for="item in list" :key="item.id">
-      {{ item.title }} - {{item.amount}}кг ({{(item.price * item.amount) + currency}}) 
+  <div class="cart-list">
+    <!-- аттрибут key очень важен когда переодически происходит перерендер списка -->
+    <div v-for="item in spisok_dlya_rendera">
+      <!-- item - является объектом поэтому он просто будет выводить [object Object], необходимо расписать по полям -->
+      {{ item }}
     </div>
   </div>
 </template>
 
 <script>
 export default {
-  data() {
-    return {
-      open: false,
-    };
+  props: {
+    cart: Array,
   },
   computed: {
-      list() { 
-          return this.$store.getters.cart.reverse();
+    // 1 в js принята camelCase; 2 в программировании не принята транслитерация
+      spisok_dlya_rendera() {
+          return this.cart.reverse();
       },
-      currency() {
-        return this.$store.getters.currency;
-      },
-      getClass() { return "cart-list" + (this.open? " cart-list-open" : "")}
   },
 };
 </script>
 
+// нету стилей для класса cart-list
 <style>
-.cart-list {
-  position: fixed;
-  top: 0;
-  right: -200px;
-  width: 300px;
-  padding: 10px;
-  background-color: white;
-  border: 1px solid black;
-}
 
-.cart-list-open {
-  right: 0;
-}
-
-.cart-label {
-  font-size: 12px;
-}
 </style>
